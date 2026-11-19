@@ -13,6 +13,7 @@ REPO = os.getenv("GITHUB_REPO", "your-user/devops-dashboard")
 TOKEN = os.getenv("GITHUB_TOKEN")
 PROJECT = os.getenv("COMPOSE_PROJECT", "devops-dashboard")
 START = time.time()
+psutil.cpu_percent(interval=None)
 
 try:
     dclient = docker.from_env()
@@ -29,7 +30,7 @@ def index():
 def system():
     REQUESTS.inc()
     return jsonify(
-        cpu=psutil.cpu_percent(interval=0.2),
+        cpu=psutil.cpu_percent(interval=None),
         memory=psutil.virtual_memory().percent,
         disk=psutil.disk_usage("/").percent,
         uptime_min=round((time.time() - START) / 60),
@@ -56,17 +57,18 @@ def pipelines():
     headers = {"Authorization": f"Bearer {TOKEN}"} if TOKEN else {}
     try:
         r = requests.get(
-            f"https://api.github.com/repos/{REPO}/actions/runs?per_page=5",
+            f"https://api.github.com/repos/{REPO}/actions/workflows/ci.yml/runs?per_page=5",
             headers=headers, timeout=5)
         runs = r.json().get("workflow_runs", [])
     except Exception:
         runs = []
     return jsonify([
-        {"id": x["run_number"], "branch": x["head_branch"], "name": x["name"],
-         "status": x["conclusion"] or x["status"], "url": x["html_url"]}
+        {"id": x["run_number"],
+         "message": x["head_commit"]["message"].split("\n")[0],
+         "status": x["conclusion"] or x["status"],
+         "url": x["html_url"]}
         for x in runs
     ])
-
 
 @app.route("/health")
 def health():

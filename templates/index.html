@@ -36,7 +36,7 @@ async function load(){
 
     const p = await (await fetch('/api/pipelines')).json();
     pipelines.innerHTML = p.map(x =>
-        `<div class="row"><a href="${x.url}" style="color:inherit">#${x.id} ${x.branch}</a>
+        `<div class="row"><a href="${x.url}" style="color:inherit">#${x.id} · ${x.message}</a>
         <span class="${x.status}">${x.status}</span></div>`).join('');
 
     } catch (e) {
