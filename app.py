@@ -1,4 +1,10 @@
-import os, time, requests, psutil, docker
+import os
+import time
+
+import docker
+import psutil
+import requests
+
 from flask import Flask, jsonify, render_template
 from prometheus_client import Counter, generate_latest, CONTENT_TYPE_LATEST
 
