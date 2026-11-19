@@ -1,0 +1,54 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8"><title>DevOps status board</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body{font-family:system-ui;background:#0f172a;color:#e2e8f0;margin:2rem}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1rem}
+    .card{background:#1e293b;border-radius:12px;padding:1rem}
+    .row{display:flex;justify-content:space-between;padding:.4rem 0;border-top:1px solid #334155}
+    .success,.running{color:#4ade80}.failure,.exited{color:#f87171}
+    .in_progress,.queued{color:#facc15}
+    .big{font-size:2rem} .muted{color:#94a3b8;font-size:.9rem}
+    a{color:inherit}
+  </style>
+</head>
+<body>
+  <h1>DevOps status board</h1>
+  <p class="muted">Stack snapshot from the last CI run: <span id="updated">-</span></p>
+  <div class="grid">
+    <div class="card"><div>CPU (runner)</div><div class="big" id="cpu">-</div></div>
+    <div class="card"><div>Memory (runner)</div><div class="big" id="mem">-</div></div>
+    <div class="card"><div>Disk (runner)</div><div class="big" id="disk">-</div></div>
+  </div><br>
+  <div class="grid">
+    <div class="card"><h3>Containers</h3><div id="containers"></div></div>
+    <div class="card"><h3>Pipeline runs (live)</h3><div id="pipelines"></div></div>
+  </div>
+<script>
+const REPO = "britideepabrahma/devops-dashboard";
+
+async function load() {
+  try {
+    updated.textContent = (await (await fetch("updated.txt")).text()).trim();
+    const s = await (await fetch("system.json")).json();
+    cpu.textContent = s.cpu + "%"; mem.textContent = s.memory + "%"; disk.textContent = s.disk + "%";
+    const c = await (await fetch("containers.json")).json();
+    containers.innerHTML = c.map(x =>
+      `<div class="row"><span>${x.name}</span><span class="${x.status}">${x.status}</span></div>`).join("");
+  } catch (e) { console.error(e); }
+
+  try {
+    const r = await (await fetch(`https://api.github.com/repos/${REPO}/actions/runs?per_page=5`)).json();
+    pipelines.innerHTML = r.workflow_runs.map(x => {
+      const st = x.conclusion || x.status;
+      return `<div class="row"><a href="${x.html_url}">#${x.run_number} ${x.name} · ${x.head_branch}</a>
+              <span class="${st}">${st}</span></div>`;
+    }).join("");
+  } catch (e) { console.error(e); }
+}
+load(); setInterval(load, 60000);
+</script>
+</body>
+</html>
