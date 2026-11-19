@@ -43,7 +43,8 @@ async function load() {
     const r = await (await fetch(`https://api.github.com/repos/${REPO}/actions/runs?per_page=5`)).json();
     pipelines.innerHTML = r.workflow_runs.map(x => {
       const st = x.conclusion || x.status;
-      return `<div class="row"><a href="${x.html_url}">#${x.run_number} ${x.name} · ${x.head_branch}</a>
+      const msg = x.head_commit.message.split("\n")[0];
+      return `<div class="row"><a href="${x.html_url}">#${x.run_number} · ${msg}</a>
               <span class="${st}">${st}</span></div>`;
     }).join("");
   } catch (e) { console.error(e); }
