@@ -1,0 +1,17 @@
+services:
+  dashboard:
+    build: .
+    ports: ["5000:5000"]
+    environment:
+      - GITHUB_REPO=your-user/devops-dashboard
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+  redis:
+    image: redis:7-alpine
+  postgres:
+    image: postgres:16-alpine
+    environment: [POSTGRES_PASSWORD=example]
+  prometheus:
+    image: prom/prometheus
+    ports: ["9090:9090"]
+    volumes: ["./prometheus.yml:/etc/prometheus/prometheus.yml"]

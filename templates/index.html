@@ -1,0 +1,49 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8"><title>DevOps Dashboard</title>
+  <style>
+    body{font-family:system-ui;background:#0f172a;color:#e2e8f0;margin:2rem}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1rem}
+    .card{background:#1e293b;border-radius:12px;padding:1rem}
+    .row{display:flex;justify-content:space-between;padding:.4rem 0;border-top:1px solid #334155}
+    .success,.running{color:#4ade80}.failure,.exited{color:#f87171}
+    .in_progress,.queued{color:#facc15}
+    h1{font-weight:500} .big{font-size:2rem}
+  </style>
+</head>
+<body>
+  <h1>DevOps status board</h1>
+  <div class="grid">
+    <div class="card"><div>CPU</div><div class="big" id="cpu">-</div></div>
+    <div class="card"><div>Memory</div><div class="big" id="mem">-</div></div>
+    <div class="card"><div>Disk</div><div class="big" id="disk">-</div></div>
+  </div><br>
+  <div class="grid">
+    <div class="card"><h3>Containers</h3><div id="containers"></div></div>
+    <div class="card"><h3>Pipeline runs</h3><div id="pipelines"></div></div>
+  </div>
+<script>
+async function load(){
+  try {
+    const s = await (await fetch('/api/system')).json();
+    cpu.textContent = s.cpu+'%'; mem.textContent = s.memory+'%'; disk.textContent = s.disk+'%';
+
+    const c = await (await fetch('/api/containers')).json();
+    containers.innerHTML = Array.isArray(c) ? c.map(x =>
+        `<div class="row"><span>${x.name}</span><span class="${x.status}">${x.status}</span></div>`).join('')
+        : c.error;
+
+    const p = await (await fetch('/api/pipelines')).json();
+    pipelines.innerHTML = p.map(x =>
+        `<div class="row"><a href="${x.url}" style="color:inherit">#${x.id} ${x.branch}</a>
+        <span class="${x.status}">${x.status}</span></div>`).join('');
+
+    } catch (e) {
+    console.error(e);
+  }
+}
+load(); setInterval(load, 5000);
+</script>
+</body>
+</html>
