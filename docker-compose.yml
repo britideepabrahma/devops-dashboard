@@ -3,7 +3,8 @@ services:
     build: .
     ports: ["5000:5000"]
     environment:
-      - GITHUB_REPO=your-user/devops-dashboard
+      - GITHUB_REPO=britideepabrahma/devops-dashboard
+      - COMPOSE_PROJECT=devops-dashboard
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
   redis:
